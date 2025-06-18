@@ -1,0 +1,67 @@
+const express = require('express');
+const sqlite3 = require('sqlite3').verbose();
+const app = express();
+
+const db = new sqlite3.Database('./shop.db');
+
+app.use(express.json());
+
+// Student Login
+app.post('/login', (req, res) => {
+    let { username, password } = req.body;
+    db.get("SELECT * FROM students WHERE username = ?", [username], (err, student) => {
+        if (student && student.password_hash === password) {
+            res.json({ message: "Login successful", student });
+        } else {
+            res.status(401).json({ error: "Invalid login" });
+        }
+    });
+});
+
+// Get leaderboard
+app.get('/leaderboard', (req, res) => {
+    db.all("SELECT username, points FROM students ORDER BY points DESC LIMIT 10", (err, topStudents) => {
+        res.json(topStudents);
+    });
+});
+
+app.listen(3000, () => console.log("Server running on http://localhost:3000"));
+
+
+
+
+
+
+
+
+<h2>Login</h2>
+<input type="text" id="username" placeholder="Username">
+<input type="password" id="password" placeholder="Password">
+<button onclick="login()">Login</button>
+
+<script>
+function login() {
+    let username = document.getElementById("username").value;
+    let password = document.getElementById("password").value;
+
+    fetch('/login', { method: 'POST', headers: {'Content-Type': 'application/json'}, 
+        body: JSON.stringify({ username, password }) })
+    .then(res => res.json())
+    .then(data => alert(data.message))
+    .catch(() => alert("Login failed!"));
+}
+</script>
+
+
+
+
+
+
+
+
+
+function generateQRCode(studentID, balance) {
+    let qrData = `StudentID:${studentID}|Balance:${balance}`;
+    let qrCode = new QRCode(document.getElementById("qrcode"), qrData);
+}
+
